@@ -1,5 +1,5 @@
 # Conv-TasNet
-Tensorflow - keras implementation of Conv-TasNet,  Modify according to codeKaituo Xu
+Tensorflow - keras implementation of Conv-TasNet,  Modify according to code of Kaituo Xu
 
 ## Install
 Tensorflow with eager_excution() (1.3.0~2.0.0),Py3,librosa, numpy, ect in import 
