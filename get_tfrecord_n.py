@@ -1,3 +1,4 @@
+## This file is noly use to create audio only dir from timit dataset. You can't run it by overwrite.
 import numpy as np
 import librosa
 import os
