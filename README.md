@@ -2,10 +2,10 @@
 Tensorflow - keras implementation of Conv-TasNet
 
 
-# Modify according to code of Kaituo Xu
+### Modify according to code of Kaituo Xu
 
 
-# Modify PIT and rerank method by one hot dot.
+### Modify PIT and rerank method by one hot dot.
 
 ## Install
 Tensorflow with eager_excution() (1.3.0~2.0.0),Py3,librosa, numpy, ect in import 
