@@ -336,7 +336,9 @@ class ConvTasNet(tf.keras.Model):
 if __name__ == '__main__':
 
     tf.enable_eager_execution()
-    test_input = tf.random_normal([3, 1000, 6])
+    test_input = tf.ones([3, 1000, 1])
+    test_input2 = tf.zeros([3, 1000, 1])
+    test_input = tf.concat([test_input, test_input2], axis=-1)
     a = ConvTasNet(filters_e=10, kernel_size_e=50, bottle_filter=50, filters_block=50,
                    kernel_size_block=3, num_conv_block=4, number_repeat=2, spk_num=2,)
     out = a(test_input)
