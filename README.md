@@ -1,5 +1,5 @@
 # Conv-TasNet
-Tensorflow - keras implementation of Conv-TasNet
+Tensorflow - keras implementation of Conv-TasNet,  Modify according to codeKaituo Xu
 ["TasNet: Surpassing Ideal Time-Frequency Masking for Speech Separation"](https://arxiv.org/abs/1809.07454).
 
 ## Install
