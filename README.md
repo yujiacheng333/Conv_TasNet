@@ -1,2 +1,9 @@
-# Conv_TasNet
-Conv TaSNet follow work of KaiTuo Xu in TF-keras
+# Conv-TasNet
+Tensorflow - keras implementation of Conv-TasNet
+["TasNet: Surpassing Ideal Time-Frequency Masking for Speech Separation"](https://arxiv.org/abs/1809.07454).
+
+## Install
+- Tensorflow with eager_excution() (1.3.0~2.0.0),Py3,librosa, numpy, ect in import 
+
+## Dataset
+TIMIT dataset load method can be find in previous work, I will upload them as fast as possible
