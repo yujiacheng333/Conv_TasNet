@@ -77,8 +77,6 @@ class Encoder(tf.keras.Model):
         :return: [bs, frame, filters] frame = int(samples - kernel_size)/(kernel_size//2) + 1
         = 2samples/kernel_size -1 make .5 overlap, frame_length = kernel_size
         """
-        if len(inputs.shape) == 2:
-            inputs = inputs[..., tf.newaxis]
         inputs_weights = self.conv1d(inputs)
         return inputs_weights
 
@@ -87,8 +85,9 @@ class Decoder(tf.keras.Model):
     """
     Decoder : Use to reform speech signal from basis, and overlap
     """
-    def __init__(self, kernel_size_enc, activation=None):
+    def __init__(self, kernel_size_enc, activation=None, speech_length=32700):
         super(Decoder, self).__init__()
+        self.audio_length = speech_length
         self.kernel_size_enc = kernel_size_enc
         self.dense = tf.keras.layers.Dense(units=kernel_size_enc,
                                            activation=activation,
@@ -105,16 +104,15 @@ class Decoder(tf.keras.Model):
         :param training:None
         :return: [bs, samples, spks]
         """
-        bs, frame, basis, spk = mask.shape
-        inputs = inputs[..., tf.newaxis] * mask
+
+        inputs, estmask = inputs[0], inputs[1]
+        _, frame, basis, spk = estmask.shape
+        inputs = inputs[..., tf.newaxis] * estmask
         inputs = tf.transpose(inputs, [0, 3, 1, 2])
         inputs = tf.reshape(inputs, [-1, frame, basis])
         inputs = self.dense(inputs)
         inputs = tf.signal.overlap_and_add(inputs, frame_step=self.kernel_size_enc//2)
-        inputs = tf.reshape(inputs, [bs, spk, -1])
-        inputs = tf.split(inputs, 2, axis=1)
-        inputs = tf.stack(inputs, axis=-1)
-        inputs = tf.squeeze(inputs)
+        inputs = tf.reshape(inputs, [-1, spk, self.audio_length])
         return inputs
 
 
@@ -167,7 +165,7 @@ class DepthwiseSeparableConv1D(tf.keras.Model):
 
         inputs = self.depthwise_conv(inputs)
         inputs = tf.nn.leaky_relu(inputs)
-        inputs = self.norm(tf.squeeze(inputs), training)
+        inputs = self.norm(inputs[:, :, 0, :], training)
         inputs = self.conv1x1(inputs)
         return inputs
 
@@ -303,7 +301,8 @@ class ConvTasNet(tf.keras.Model):
                  spk_num,
                  norm_type="gLN",
                  causal=False,
-                 mask_nonlinear='relu'):
+                 mask_nonlinear='relu',
+                 speech_length=32700,):
         """
         input_signals[bs, T, chs] =enc>
         mixtureweights[bs, frame, basis]=decoder>=mask estimate[bs, frame, basis, spk]>output
@@ -319,17 +318,18 @@ class ConvTasNet(tf.keras.Model):
         :param norm_type:BN, gLN, cLN
         :param causal:causal or non-causal
         :param mask_nonlinear:use which non-linear function to generate mask in str
+        :param speech_length: padded speech length
         """
         super(ConvTasNet, self).__init__()
         self.encoder = Encoder(filters_e, kernel_size_e)
-        self.decoder = Decoder(kernel_size_e)
+        self.decoder = Decoder(kernel_size_e, speech_length=speech_length)
         self.separator = TemporlaConvNet(filters_e, bottle_filter, filters_block, kernel_size_block, num_conv_block,
                                          number_repeat, spk_num, norm_type, causal, mask_nonlinear)
 
     def call(self, inputs, training=None, mask=None):
-        mixture_w = self.encoder(inputs, training=training)
-        est_mask = self.separator(mixture_w, training=training)
-        est_source = self.decoder(mixture_w, mask=est_mask, training=training)
+        mixture_w = self.encoder(inputs=inputs, training=training)
+        est_mask = self.separator(inputs=mixture_w, training=training)
+        est_source = self.decoder(inputs=[mixture_w, est_mask], training=training)
         return est_source
 
 
@@ -340,7 +340,8 @@ if __name__ == '__main__':
     test_input2 = tf.zeros([3, 1000, 1])
     test_input = tf.concat([test_input, test_input2], axis=-1)
     a = ConvTasNet(filters_e=10, kernel_size_e=50, bottle_filter=50, filters_block=50,
-                   kernel_size_block=3, num_conv_block=4, number_repeat=2, spk_num=2,)
+                   kernel_size_block=3, num_conv_block=4, number_repeat=2, spk_num=2,
+                   speech_length=100)
     out = a(test_input)
     a.summary()
     print(out.shape)

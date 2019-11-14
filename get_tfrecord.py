@@ -44,6 +44,7 @@ class RecordMaker(object):
                                                     mulaw=self.mulaw)
             # here I split expanded data which might not a good way
             # If you need to use this algorithm to write a paper, please first segment in the expansion
+            self.paddings = np.max(self.paddings, axis=-1)
             self.audios_train, self.audios_test, self.paddings_train, self.paddings_test = \
                 train_test_split(self.audios,
                                  self.paddings,
@@ -103,12 +104,9 @@ class RecordMaker(object):
         all_audios = os.listdir(file_path)
         audios = []
         paddings = []
-        counter = 0
         for i in all_audios:
             if "_n" in i:
-                counter += 1
-                if counter > 100:
-                    break
+
                 local_audio, padding = pad_audios(librosa.load(file_path+"/"+i, sr=self.fs)[0],
                                                   normal_type=self.normal_type,
                                                   audio_length=self.audio_length)
