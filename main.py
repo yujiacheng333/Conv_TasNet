@@ -1,11 +1,14 @@
 import tensorflow as tf
 import os
+import numpy as np
+from evaluate import cal_sdri, cal_sisnri
 from configmaker import ConfigTables
 from conv_tasnet import ConvTasNet
 from get_tfrecord import RecordMaker
 from utils import mu_law_decode
 from PIT_loss import cal_loss
 import matplotlib.pyplot as plt
+from scipy.io.wavfile import write
 tf.enable_eager_execution()
 
 
@@ -32,7 +35,9 @@ class ModelAccess(object):
             self.optimizer = tf.train.RMSPropOptimizer(self.lr)
         self.ckpt_dir = self.trainconfig["ckpt_dir"]
         self.epoches = self.trainconfig["epoches"]
+        self.output_dir = self.dataconfig["output_dir"]
         os.makedirs(self.ckpt_dir, exist_ok=True)
+        os.makedirs(self.output_dir, exist_ok=True)
         self.dataset = RecordMaker(training).dataset
         self.max_to_keep = self.trainconfig["max_to_keep"]
         self.filters_e = self.modelconfig["filters_e"]
@@ -93,15 +98,44 @@ class ModelAccess(object):
             if train_step % self.savemodel_periter == 0:
                 self.ckpt_manager.save()
             if train_step % self.plot_pertire == 0:
-                plt.plot(mixture[0, :, 0].numpy())
-                plt.show()
-                for i in range(self.spk_num):
-                    plt.plot(reorder_estimate_source[0, i, :].numpy())
-                    plt.show()
-                    plt.plot(clean_speech[0, i, :].numpy())
-                    plt.show()
-            print(loss.numpy())
-            print("train_step is {}".format(train_step))
+                self.eval(mixture, length, target_singla=clean_speech, train_step=train_step)
+
+    def eval(self, mixture, length, target_singla, train_step):
+        """
+
+        :param mixture: [bs, time]
+        :param length: length for non-padding signal
+        :param target_singla: [bs, spk, time]
+        :param train_step: use to print
+        :return: SISNRi, SDRi
+        """
+        mixture = mixture[:, :, 0]
+        bs, time = mixture.shape
+        output = self.convtasnet(mixture[..., tf.newaxis], False)
+        loss, max_snr, estimate_source, reorder_estimate_source = cal_loss(target_singla, output, length)
+        avg_sisnri = []
+        avg_sdri = []
+        plt.plot(mixture[0, :].numpy())
+        plt.show()
+        write(self.output_dir + "mixture.wav", rate=8000, data=mixture[0].numpy())
+        for i in range(self.spk_num):
+            data = reorder_estimate_source[0, i, :].numpy()
+            plt.plot(data)
+            plt.show()
+            plt.plot(target_singla[0, i, :].numpy())
+            plt.show()
+            data /= np.max(np.abs(data))
+            write(self.output_dir + str(i) + ".wav", rate=8000, data=data)
+        for i in range(bs):
+            local_mixture = mixture[i, :].numpy()
+            local_target = target_singla[i].numpy()
+            local_estimate = reorder_estimate_source[i].numpy()
+            avg_sdri.append(cal_sdri(local_target, local_estimate, local_mixture))
+            avg_sisnri.append(cal_sisnri(local_target, local_estimate, local_mixture))
+        print("After {} training, loss={}, SDRI={}, SISNRI={}".format(train_step,
+                                                                      loss,
+                                                                      np.mean(avg_sdri),
+                                                                      np.mean(avg_sisnri)))
 
 
 if __name__ == '__main__':

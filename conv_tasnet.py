@@ -215,10 +215,11 @@ class Padding(tf.keras.Model):
 
     def call(self, inputs, training=None, mask=None):
         if self.causal:
-            inputs = tf.pad(inputs, ((0, 0), (self.padding, 0), (0, 0), (0, 0)), mode="REFLECT")
+            inputs = tf.pad(inputs, ((0, 0), (self.padding, 0), (0, 0), (0, 0)), mode="constant", constant_values=0)
         else:
             length = inputs.shape[1]
-            inputs = tf.pad(inputs, ((0, 0), (self.padding//2, self.padding//2+1), (0, 0), (0, 0)), mode="REFLECT")
+            inputs = tf.pad(inputs, ((0, 0), (self.padding//2, self.padding//2+1), (0, 0), (0, 0)),
+                            mode="constant", constant_values=0)
             inputs = inputs[:length]
         return inputs
 

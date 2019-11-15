@@ -20,15 +20,22 @@ def cal_sdri(src_ref, src_est, mix):
 
 
 def cal_sisnri(src_ref, src_est, mix):
-    sisnr1 = cal_sinr(src_ref[0], src_est[0])
-    sisnr2 = cal_sinr(src_ref[1], src_est[1])
-    sisnr1b = cal_sinr(src_ref[0], mix)
-    sisnr2b = cal_sinr(src_ref[1], mix)
+    """
+
+    :param src_ref: [spk, T]
+    :param src_est: [spk, T]
+    :param mix:
+    :return:
+    """
+    sisnr1 = cal_sisnr(src_ref[0], src_est[0])
+    sisnr2 = cal_sisnr(src_ref[1], src_est[1])
+    sisnr1b = cal_sisnr(src_ref[0], mix)
+    sisnr2b = cal_sisnr(src_ref[1], mix)
     avg_sisnri = ((sisnr1 - sisnr1b) + (sisnr2 - sisnr2b)) / 2
     return avg_sisnri
 
 
-def cal_sinr(ref_sig, out_sig, eps=1e-8):
+def cal_sisnr(ref_sig, out_sig, eps=1e-8):
     ref_sig = ref_sig - np.mean(ref_sig)
     out_sig = out_sig - np.mean(out_sig)
     ref_energy = np.sum(ref_sig ** 2) + eps

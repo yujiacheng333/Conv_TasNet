@@ -38,6 +38,7 @@ class ConfigTables(object):
                        "normal_type": "max_devide",
                        "mulaw": 256,
                        "train_test_split": .2,
+                       "output_dir": "./output/",
                        }
         train_config = {"lr": 1e-4,
                         "optimizer": "adma",
@@ -58,7 +59,7 @@ class ConfigTables(object):
                         "num_conv_block": 7,
                         "number_repeat": 2,  # 青春版配置~~,可以自己加哦
                         "spk_num": 2,  # This affect the output size different to max_mix_num
-                        "norm_type": "gLN",
+                        "norm_type": "cln",
                         "causal": False,
                         "mask_nonlinear": "relu"
                         }

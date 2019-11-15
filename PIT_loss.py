@@ -60,7 +60,7 @@ def cal_si_snr_with_pit(source, estimate_source, source_lengths):
     max_snr_idx = k.argmax(snr_set, axis=-1)  # [B,]
     max_snr_idx = tf.one_hot(max_snr_idx, depth=length)
     max_snr = max_snr_idx * snr_set
-    max_snr = tf.reduce_sum(max_snr, axis=-1) / tf.to_float(spk1)
+    max_snr = k.sum(max_snr, axis=-1) / tf.to_float(spk1)
     return max_snr, perms, max_snr_idx
 
 
@@ -87,6 +87,8 @@ def cal_loss(source, estimate_source, source_lengths):
     max_snr, perms, max_snr_idx = cal_si_snr_with_pit(source,
                                                       estimate_source,
                                                       source_lengths)
-    loss = 0. - k.mean(max_snr)
+    loss = 25. - k.mean(max_snr)
     reorder_estimate_source = reorder_source(estimate_source, perms, max_snr_idx)
     return loss, max_snr, estimate_source, reorder_estimate_source
+
+
