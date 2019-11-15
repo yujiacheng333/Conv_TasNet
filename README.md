@@ -15,3 +15,8 @@ TIMIT dataset load method can be find in previous work, I will upload them as fa
 
 ## Current equipment requirements
 RTX2080Ti(Least) + i9 9900kf + 32GB menmory
+## How to
+1.Make dir 'audio_only' by modify codes in get_tfrecord_n.py
+2.Run config maker.py to get configs dir
+3.Run main, onece OOM error, change params in configmaker
+4.Run Go method(Not finish)
