@@ -20,3 +20,5 @@ RTX2080Ti(Least) + i9 9900kf + 32GB menmory
 2.Run config maker.py to get configs dir
 3.Run main, onece OOM error, change params in configmaker
 4.Run Go method
+
+# There is still some bugs in this code, for better result, see novel conde provided in https://github.com/yujiacheng333/Speech-Experiment/tree/master/TasnetSeries, both DPRNN and ConvTasNet are included.
